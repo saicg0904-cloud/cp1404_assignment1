@@ -128,6 +128,38 @@ def recommend_place(places):
     print(f"How about... {name} in {country}?")
 
 
+def mark_visited(places):
+    """Mark a selected place as visited (cannot revert) with full input validation."""
+    unvisited_count = count_unvisited(places)
+    if unvisited_count == 0:
+        print("No unvisited places")
+        return
+    display_places(places)
+    total_places = len(places)
+    place_number = get_valid_number(
+        "Enter the number of a place to mark as visited\n>>> ", 1
+    )
+    while place_number > total_places:
+        print("Invalid place number")
+        place_number = get_valid_number(">>> ", 1)
+
+    sorted_places = sort_places(places)
+    selected_place = sorted_places[place_number - 1]
+
+    if selected_place[3] == VISITED:
+        print(f"You have already visited {selected_place[0]}")
+        return
+
+    # Exact match: locate by name + country + priority to avoid matching errors from duplicate data
+    for place in places:
+        if (place[0] == selected_place[0] and
+            place[1] == selected_place[1] and
+            place[2] == selected_place[2]):
+            place[3] = VISITED
+            break
+    print(f"{selected_place[0]} in {selected_place[1]} visited!")
+
+
 def main():
     """Main function: program entry point and menu loop."""
     print(f"Travel Tracker 1.0 - by Qiuhao Wu")
@@ -141,7 +173,9 @@ def main():
         elif choice == "A":
             add_place(places)
         elif choice == "R":
-            recommend_place(places)  # Add recommend function
+            recommend_place(places)
+        elif choice == "M":
+            mark_visited(places)  # Add mark_visited function
         elif choice == "Q":
             save_places(places)
             print(f"{len(places)} places saved to {CSV_FILE}")
