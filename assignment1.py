@@ -58,16 +58,46 @@ def save_places(places):
         file.write("\n".join(lines))
 
 
+def sort_places(places):
+    """Sort places by visited status (unvisited first) then by priority (lower = higher)."""
+    return sorted(places, key=lambda x: (x[3] == VISITED, x[2]))
+
+
+def count_unvisited(places):
+    """Count the number of unvisited places in the list."""
+    return sum(1 for place in places if place[3] == UNVISITED)
+
+
+def display_places(places):
+    """Display all places in a neatly formatted, sorted list (matches sample output)."""
+    if not places:
+        print("No places tracked yet.")
+        return
+    sorted_places = sort_places(places)
+    unvisited_count = count_unvisited(sorted_places)
+    total_count = len(sorted_places)
+    for index, place in enumerate(sorted_places, 1):
+        name, country, priority, status = place
+        marker = "*" if status == UNVISITED else ""
+        print(f"{marker}{index}. {name} in {country} {priority}")
+    print(
+        f"{total_count} places tracked. "
+        f"You still want to visit {unvisited_count} places."
+    )
+
+
 def main():
     """Main function: program entry point and menu loop."""
     print(f"Travel Tracker 1.0 - by Qiuhao Wu")
-    places = load_places()  # Restore CSV loading
+    places = load_places()
     print(f"{len(places)} places loaded from {CSV_FILE}")
     print(MENU)
     while True:
         choice = input(">>> ").strip().upper()
-        if choice == "Q":
-            save_places(places)  # Restore CSV saving
+        if choice == "D":
+            display_places(places)  # Add display function
+        elif choice == "Q":
+            save_places(places)
             print(f"{len(places)} places saved to {CSV_FILE}")
             print("Have a nice day :)")
             break
