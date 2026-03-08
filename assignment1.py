@@ -116,6 +116,18 @@ def add_place(places):
     print(f"{name} in {country} (priority {priority}) added to Travel Tracker.")
 
 
+def recommend_place(places):
+    """Recommend a random unvisited place, or print message if no unvisited places."""
+    unvisited_places = [p for p in places if p[3] == UNVISITED]
+    if not unvisited_places:
+        print("No places left to visit!")
+        return
+    random_place = random.choice(unvisited_places)
+    name, country = random_place[0], random_place[1]
+    print("Not sure where to visit next?")
+    print(f"How about... {name} in {country}?")
+
+
 def main():
     """Main function: program entry point and menu loop."""
     print(f"Travel Tracker 1.0 - by Qiuhao Wu")
@@ -127,7 +139,9 @@ def main():
         if choice == "D":
             display_places(places)
         elif choice == "A":
-            add_place(places)  # Add add_place function
+            add_place(places)
+        elif choice == "R":
+            recommend_place(places)  # Add recommend function
         elif choice == "Q":
             save_places(places)
             print(f"{len(places)} places saved to {CSV_FILE}")
