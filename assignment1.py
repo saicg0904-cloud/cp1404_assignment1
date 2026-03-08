@@ -175,7 +175,7 @@ def main():
         elif choice == "R":
             recommend_place(places)
         elif choice == "M":
-            mark_visited(places)  # Add mark_visited function
+            mark_visited(places)
         elif choice == "Q":
             save_places(places)
             print(f"{len(places)} places saved to {CSV_FILE}")
