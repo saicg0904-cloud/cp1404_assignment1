@@ -1,3 +1,5 @@
-Lima,Peru,3,n
-Auckland,New Zealand,1,v
-Rome,Italy,12,n
+Lima,Peru,3,True
+Auckland,New Zealand,1,False
+Rome,Italy,12,False
+Sydney,Australia,1,False
+New York City,United States,2,False

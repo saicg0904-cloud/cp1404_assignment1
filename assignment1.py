@@ -1,189 +1,194 @@
 """
-CP1404/CP5632 Assignment 1: Travel Tracker 1.0
+CP1404 Assignment 1 - Travel Tracker
 Student Name: Qiuhao Wu
-Date: 2026-03-08
-GitHub URL: https://github.com/saicg0904-cloud/cp1404_assignment1
-Travel tracker program to manage visited/unvisited travel places with CSV I/O and menu interaction.
+GitHub URL: https://github.com/saicg9904-cloud/cp1404_assignment1
 """
 
+import csv
 import random
 
-# Named constants (only allowed global variables)
-VISITED = "v"
-UNVISITED = "n"
-CSV_FILE = "places.csv"
-MENU = """Menu:
-D - Display all places
-R - Recommend a random place
-A - Add a new place
-M - Mark a place as visited
-Q - Quit"""
+FILENAME = "places.csv"
 
 
 def load_places():
     """
-    Load places from CSV file at program start (only once).
-    Returns: list of lists - raw place data with priority converted to integer
+    Load places from CSV file.
+    Returns:
+        list: List of place lists [name, country, priority, visited]
+              visited is boolean (True/False)
     """
     places = []
     try:
-        with open(CSV_FILE, "r") as file:
-            for line in file:
-                line = line.strip()
-                if not line:
-                    continue
-                parts = line.split(",")
-                try:
-                    name = parts[0].strip()
-                    country = parts[1].strip()
-                    priority = int(parts[2].strip())
-                    status = parts[3].strip().lower()
-                    places.append([name, country, priority, status])
-                except (ValueError, IndexError):
-                    continue
+        with open(FILENAME, 'r', newline='', encoding='utf-8') as file:
+            reader = csv.reader(file)
+            for row in reader:
+                # Convert priority to int and visited to boolean
+                row[2] = int(row[2])
+                row[3] = row[3].lower() == 'true'
+                places.append(row)
     except FileNotFoundError:
+        # If file doesn't exist, return empty list (no error message per sample output)
         pass
     return places
 
 
 def save_places(places):
     """
-    Save places to CSV file (only once on program quit), overwrite existing content.
-    Avoid extra blank line at the end of file.
+    Save places to CSV file.
     Args:
-        places (list of lists): Current place data to save
+        places (list): List of place lists to save
     """
-    lines = [f"{p[0]},{p[1]},{p[2]},{p[3]}" for p in places]
-    with open(CSV_FILE, "w") as file:
-        file.write("\n".join(lines))
-
-
-def sort_places(places):
-    """Sort places by visited status (unvisited first) then by priority (lower = higher)."""
-    return sorted(places, key=lambda x: (x[3] == VISITED, x[2]))
-
-
-def count_unvisited(places):
-    """Count the number of unvisited places in the list."""
-    return sum(1 for place in places if place[3] == UNVISITED)
+    with open(FILENAME, 'w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        for place in places:
+            # Convert boolean visited back to string for CSV
+            writer.writerow([place[0], place[1], place[2], str(place[3])])
 
 
 def display_places(places):
-    """Display all places in a neatly formatted, sorted list (matches sample output)."""
+    """
+    Display the list of places in a neatly formatted, aligned way.
+    Dynamically calculate column widths based on longest values (per assignment requirement).
+
+    Args:
+        places (list): List of place lists [name, country, priority, visited]
+    """
     if not places:
-        print("No places tracked yet.")
-        return
-    sorted_places = sort_places(places)
-    unvisited_count = count_unvisited(sorted_places)
-    total_count = len(sorted_places)
+        return  # No custom message - match sample output
+
+    # Calculate max lengths for dynamic alignment
+    max_name_length = max(len(place[0]) for place in places)
+    max_country_length = max(len(place[1]) for place in places)
+
+    # Sort: unvisited first, then by priority (ascending)
+    sorted_places = sorted(places, key=lambda x: (x[3], x[2]))
+
+    print("\nPlaces to visit:")
     for index, place in enumerate(sorted_places, 1):
-        name, country, priority, status = place
-        marker = "*" if status == UNVISITED else ""
-        print(f"{marker}{index}. {name} in {country} {priority}")
-    print(
-        f"{total_count} places tracked. "
-        f"You still want to visit {unvisited_count} places."
-    )
-
-
-def get_valid_input(prompt, is_blank_allowed=False):
-    """Generic input validation for non-numeric inputs (name/country)."""
-    while True:
-        user_input = input(prompt).strip()
-        if user_input or is_blank_allowed:
-            return user_input
-        print("Input can not be blank")
-
-
-def get_valid_number(prompt, min_value=1):
-    """Generic input validation for numeric inputs (priority/place number)."""
-    while True:
-        try:
-            number = int(input(prompt).strip())
-            if number > min_value - 1:
-                return number
-            print(f"Number must be > {min_value - 1}")
-        except ValueError:
-            print("Invalid input; enter a valid number")
+        name, country, priority, visited = place
+        marker = "*" if not visited else " "
+        # Dynamic alignment with formatted strings
+        print(f"{marker}{index}. {name:<{max_name_length}} in {country:<{max_country_length}} priority {priority}")
 
 
 def add_place(places):
-    """Add a new unvisited place to the in-memory list with full input validation."""
-    name = get_valid_input("Name: ")
-    country = get_valid_input("Country: ")
-    priority = get_valid_number("Priority: ")
-    places.append([name, country, priority, UNVISITED])
-    print(f"{name} in {country} (priority {priority}) added to Travel Tracker.")
+    """
+    Add a new place to the list with input validation.
+    Args:
+        places (list): List of place lists to add to
+    """
+    print("\nAdd a new place:")
+
+    # Validate name (non-empty)
+    while True:
+        name = input("Name: ").strip()
+        if name:
+            break
+        print("Name cannot be empty.")
+
+    # Validate country (non-empty)
+    while True:
+        country = input("Country: ").strip()
+        if country:
+            break
+        print("Country cannot be empty.")
+
+    # Validate priority (positive integer)
+    while True:
+        try:
+            priority = int(input("Priority: ").strip())
+            if priority > 0:
+                break
+            print("Priority must be a positive number.")
+        except ValueError:
+            print("Please enter a valid number for priority.")
+
+    # Add new place (default to unvisited: False)
+    places.append([name, country, priority, False])
+    print(f"Added {name} in {country} (priority {priority}) to travel tracker.")
 
 
 def recommend_place(places):
-    """Recommend a random unvisited place, or print message if no unvisited places."""
-    unvisited_places = [p for p in places if p[3] == UNVISITED]
+    """
+    Recommend a random unvisited place.
+    Args:
+        places (list): List of place lists
+    """
+    # Filter unvisited places
+    unvisited_places = [place for place in places if not place[3]]
+
     if not unvisited_places:
-        print("No places left to visit!")
+        print("\nNo places left to visit!")
         return
-    random_place = random.choice(unvisited_places)
-    name, country = random_place[0], random_place[1]
-    print("Not sure where to visit next?")
-    print(f"How about... {name} in {country}?")
+
+    # Randomly select one
+    recommended = random.choice(unvisited_places)
+    print(f"\nRecommended place to visit: {recommended[0]} in {recommended[1]} (priority {recommended[2]})")
 
 
 def mark_visited(places):
-    """Mark a selected place as visited (cannot revert) with full input validation."""
-    unvisited_count = count_unvisited(places)
-    if unvisited_count == 0:
-        print("No unvisited places")
+    """
+    Mark a place as visited by its display index (most precise matching).
+    Args:
+        places (list): List of place lists
+    """
+    if not places:
+        print("\nNo places to mark as visited.")
         return
+
+    # Display places first for user reference
     display_places(places)
-    total_places = len(places)
-    place_number = get_valid_number(
-        "Enter the number of a place to mark as visited\n>>> ", 1
-    )
-    while place_number > total_places:
-        print("Invalid place number")
-        place_number = get_valid_number(">>> ", 1)
 
-    sorted_places = sort_places(places)
-    selected_place = sorted_places[place_number - 1]
-
-    if selected_place[3] == VISITED:
-        print(f"You have already visited {selected_place[0]}")
-        return
-
-    # Exact match: locate by name + country + priority to avoid matching errors from duplicate data
-    for place in places:
-        if (place[0] == selected_place[0] and
-            place[1] == selected_place[1] and
-            place[2] == selected_place[2]):
-            place[3] = VISITED
-            break
-    print(f"{selected_place[0]} in {selected_place[1]} visited!")
+    # Validate input and mark place
+    while True:
+        try:
+            selected_index = int(input("\nEnter the number of the place to mark as visited: ").strip()) - 1  # Convert to 0-index
+            if 0 <= selected_index < len(places):
+                # Check if already visited
+                if places[selected_index][3]:
+                    print(f"You have already visited {places[selected_index][0]}!")
+                else:
+                    places[selected_index][3] = True
+                    print(f"Marked {places[selected_index][0]} as visited.")
+                break
+            else:
+                print(f"Please enter a number between 1 and {len(places)}.")
+        except ValueError:
+            print("Please enter a valid integer.")
 
 
 def main():
-    """Main function: program entry point and menu loop."""
-    print(f"Travel Tracker 1.0 - by Qiuhao Wu")
+    """Main function - run the travel tracker program."""
+    print("Travel Tracker 1.0 - by Qiuhao Wu")
     places = load_places()
-    print(f"{len(places)} places loaded from {CSV_FILE}")
-    print(MENU)
+    print(f"Loaded {len(places)} places from {FILENAME}")
+
+    # Main menu loop
     while True:
-        choice = input(">>> ").strip().upper()
-        if choice == "D":
+        print("\nMenu:")
+        print("D - Display places")
+        print("R - Recommend a random place")
+        print("A - Add a new place")
+        print("M - Mark a place as visited")
+        print("Q - Quit")
+
+        choice = input("Enter your choice: ").strip().upper()
+
+        if choice == 'D':
             display_places(places)
-        elif choice == "A":
-            add_place(places)
-        elif choice == "R":
+        elif choice == 'R':
             recommend_place(places)
-        elif choice == "M":
+        elif choice == 'A':
+            add_place(places)
+        elif choice == 'M':
             mark_visited(places)
-        elif choice == "Q":
+        elif choice == 'Q':
             save_places(places)
-            print(f"{len(places)} places saved to {CSV_FILE}")
-            print("Have a nice day :)")
+            print(f"\nSaved {len(places)} places to {FILENAME}")
+            print("Goodbye!")
             break
         else:
-            print("Invalid menu choice")
-        print(MENU)
+            print("Invalid menu choice. Please enter D, R, A, M or Q.")
 
 
 if __name__ == "__main__":
