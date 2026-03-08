@@ -23,7 +23,7 @@ Q - Quit"""
 def main():
     """Main function: program entry point and menu loop."""
     print(f"Travel Tracker 1.0 - by Qiuhao Wu")
-    places = []  # 临时空列表
+    places = []  # Temporary empty list
     print(f"{len(places)} places loaded from {CSV_FILE}")
     print(MENU)
     while True:
